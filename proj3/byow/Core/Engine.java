@@ -1,19 +1,38 @@
 package byow.Core;
 
+import byow.InputDemo.InputSource;
+import byow.InputDemo.KeyboardInputSource;
+import byow.InputDemo.StringInputDevice;
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
+import byow.TileEngine.Tileset;
+import edu.princeton.cs.algs4.StdDraw;
+import org.junit.jupiter.api.ClassOrderer;
+
+import java.awt.*;
+import java.util.Random;
 
 public class Engine {
-    TERenderer ter = new TERenderer();
+    TERenderer ter;
     /* Feel free to change the width and height. */
-    public static final int WIDTH = 80;
-    public static final int HEIGHT = 30;
+    public int WIDTH = 40;
+    public int HEIGHT = 30;
+    private InputSource input;
+    private Random rd;
+    private TETile[][] world = new TETile[WIDTH][HEIGHT];
+
+    public Engine(){
+        rd = new Random();
+        ter = new TERenderer();
+        ter.initialize(WIDTH,HEIGHT);
+    }
 
     /**
      * Method used for exploring a fresh world. This method should handle all inputs,
      * including inputs from the main menu.
      */
     public void interactWithKeyboard() {
+        input = new KeyboardInputSource();
     }
 
     /**
@@ -45,8 +64,39 @@ public class Engine {
         //
         // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
         // that works for many different input types.
+        StringInputDevice SID = new StringInputDevice(input);
+        this.input = SID;
+        return world;
 
-        TETile[][] finalWorldFrame = null;
-        return finalWorldFrame;
+    }
+    private void interactMenu(){
+
+    }
+
+    private void processAction(char curr) {
+    }
+
+    public void createWorld(int seed){
+        rd.setSeed(seed);
+
+        this.world = new Generator(rd,WIDTH,HEIGHT).generateWorld();
+    }
+
+    public void rendererScreen(){
+        StdDraw.clear(Color.pink);
+        Font font = new Font("Serif", Font.BOLD, 36);
+        StdDraw.setFont(font);
+        StdDraw.setPenColor(Color.white);
+        StdDraw.text(WIDTH / 2, HEIGHT - 10,
+                "CS61B: THE GAME");
+
+        Font menu = new Font("Serif", Font.BOLD, 24);
+        StdDraw.setFont(menu);
+        StdDraw.setPenColor(Color.white);
+        StdDraw.text(WIDTH / 2, HEIGHT - 20, "New Game (N)");
+        StdDraw.text(WIDTH / 2, HEIGHT - 22, "Load Game (L)");
+        StdDraw.text(WIDTH / 2, HEIGHT - 24, "Quit (Q)");
+        StdDraw.show();
+
     }
 }
