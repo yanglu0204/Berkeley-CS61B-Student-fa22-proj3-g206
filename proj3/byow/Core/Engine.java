@@ -78,7 +78,6 @@ public class Engine {
 
     public void createWorld(int seed){
         rd.setSeed(seed);
-
         this.world = new Generator(rd,WIDTH,HEIGHT).generateWorld();
     }
 

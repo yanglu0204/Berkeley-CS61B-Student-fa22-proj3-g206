@@ -17,9 +17,6 @@ public class Main {
             Engine engine = new Engine();
             engine.interactWithKeyboard();
             engine.rendererScreen();
-            while(true){
-
-            }
         }
     }
 }
