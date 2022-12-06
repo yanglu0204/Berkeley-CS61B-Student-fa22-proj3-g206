@@ -4,7 +4,6 @@ import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 public class Generator {
     private Random random;
@@ -14,6 +13,7 @@ public class Generator {
     private int WIDTH;
 
     private int HEIGHT;
+    private int[] lst;
 
     private static class Room {
         int W;
@@ -60,6 +60,8 @@ public class Generator {
         this.sortRooms();
         this.makeHallways();
         this.makeWall();
+        this.makechicks();
+        makeikun();
         return world;
     }
 
@@ -92,7 +94,7 @@ public class Generator {
                 return o1.Dis - o2.Dis;
             }
         });
- 
+
     }
 
     public boolean canPlace(Room room, ArrayList<Room> rooms) {
@@ -176,9 +178,34 @@ public class Generator {
             }
         }
 
-
     }
 
+    public void makechicks() {
+        int num = 0;
+        while (num < 6) {
+            int x = RandomUtils.uniform(random, WIDTH);
+            int y = RandomUtils.uniform(random, HEIGHT);
+            if (world[x][y].equals(Tileset.FLOOR)) {
+                world[x][y] = Tileset.CHICKEN;
+                num += 1;
+            }
+        }
+    }
+
+    public void makeikun() {
+        int x = RandomUtils.uniform(random, WIDTH);
+        int y = RandomUtils.uniform(random, HEIGHT);
+        if (world[x][y].equals(Tileset.FLOOR)) {
+            world[x][y] = Tileset.AVATAR;
+            lst = new int[2];
+            lst[0] = x;
+            lst[1] = y;
+        }
+        else {
+            makeikun();
+        }
+    }
+    public int[] findIkun() {
+        return lst;
+    }
 }
-
-

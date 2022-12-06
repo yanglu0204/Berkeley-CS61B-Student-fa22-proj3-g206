@@ -12,6 +12,8 @@ import org.junit.jupiter.api.ClassOrderer;
 import java.awt.*;
 import java.util.Random;
 
+import static byow.TileEngine.Tileset.*;
+
 public class Engine {
     TERenderer ter;
     /* Feel free to change the width and height. */
@@ -19,7 +21,15 @@ public class Engine {
     public int HEIGHT = 30;
     private InputSource input;
     private Random rd;
+    private boolean gameOver;
     private TETile[][] world = new TETile[WIDTH][HEIGHT];
+    private int[] lst;
+    private Generator generator;
+    private static final String[] ENCOURAGEMENT = {"You got this IKUN!", "Nice Job IKUN!", "You can do it IKUN!"};
+
+
+    private int chicken;
+    private String s;
 
     public Engine(){
         rd = new Random();
@@ -32,7 +42,9 @@ public class Engine {
      * including inputs from the main menu.
      */
     public void interactWithKeyboard() {
-        input = new KeyboardInputSource();
+        rendererScreen();
+        StdDraw.enableDoubleBuffering();
+        searchWord();
     }
 
     /**
@@ -64,21 +76,174 @@ public class Engine {
         //
         // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
         // that works for many different input types.
-        StringInputDevice SID = new StringInputDevice(input);
-        this.input = SID;
-        return world;
+        rendererScreen();
+        StdDraw.pause(1000);
+        String lower = input.toLowerCase();
+        String seed = searchSeed(lower);
+        Long number = Long.parseLong(seed);
+        String command = searchCommand(lower, seed.length() + 1);
+        Generator g = new Generator(new Random(number), WIDTH, HEIGHT);
+        TERenderer renderer = new TERenderer();
+        renderer.initialize(WIDTH,HEIGHT);
+        TETile[][] finalWorld = g.generateWorld();
+        renderer.renderFrame(finalWorld);
+        return finalWorld;
+
 
     }
-    private void interactMenu(){
-
+    private String searchCommand(String ss, int i) {
+        String type = "";
+        for (int a = i; a < ss.length(); a += 1) {
+            if (ss.charAt(i) - ':' == 0 && a != ss.length() - 1) {
+                if (ss.charAt(1 + a) == 'q' || ss.charAt(1 + a) == 'Q') {
+                    break;
+                }
+            }
+            type += ss.charAt(a);
+        }
+        return type;
+    }
+    private String searchSeed(String ss) {
+        String type = "";
+        for (int i = 0; i < ss.length(); i += 1) {
+            if (ss.charAt(i) == 'n' || ss.charAt(i) == 'N') {
+                continue;
+            }
+            else if (ss.charAt(i) == 's' || ss.charAt(i) == 'S') {
+                break;
+            }
+            else {
+                type += ss.charAt(i);
+            }
+        }
+        return type;
     }
 
-    private void processAction(char curr) {
+    private void searchWord() {
+        s = "";
+        boolean search = true;
+        while (search) {
+            if (StdDraw.hasNextKeyTyped()) {
+                char c = StdDraw.nextKeyTyped();
+                if (c == 'n') {
+                    interactMenu();
+                }
+                if (Character.isDigit(c)) {
+                    s += c;
+                    interactMenu();
+                }
+                if (c == 'p') {
+                    search = false;
+                    Long number = Long.parseLong(s);
+                    generator = new Generator(new Random(number), WIDTH, HEIGHT);
+                    ter = new TERenderer();
+                    ter.initialize(WIDTH,HEIGHT);
+                    TETile[][] finalWorld = generator.generateWorld();
+                    ter.renderFrame(finalWorld);
+                    walk(finalWorld);
+                }
+            }
+        }
     }
 
-    public void createWorld(int seed){
-        rd.setSeed(seed);
-        this.world = new Generator(rd,WIDTH,HEIGHT).generateWorld();
+    public void walk(TETile[][] world) {
+        gameOver = false;
+        chicken = 0;
+        lst = new int[2];
+        lst[0] = generator.findIkun()[0];
+        lst[1] = generator.findIkun()[1];
+        while (!this.gameOver) {
+            if (StdDraw.hasNextKeyTyped()) {
+                char c = StdDraw.nextKeyTyped();
+                if (c == 'a') {
+                    if (world[lst[0] - 1][lst[1]].equals(CHICKEN)) {
+                        chicken += 1;
+                    }
+                    if (chicken == 6) {
+                        gameOver = true;
+                        endGame();
+                        StdDraw.show();
+                    }
+                    if (world[lst[0] - 1][lst[1]] != WALL) {
+                        world[lst[0] - 1][lst[1]] = AVATAR;
+                        world[lst[0]][lst[1]] = FLOOR;
+                        lst[0] -= 1;
+                        ter.renderFrame(world);
+                    } else {
+                        world[lst[0]][lst[1]] = AVATAR;
+                    }
+                }
+                if (c == 'w') {
+                    if (world[lst[0]][lst[1] + 1].equals(CHICKEN)) {
+                        chicken += 1;
+                    }
+                    if (chicken == 6) {
+                        gameOver = true;
+                        endGame();
+                        StdDraw.show();
+                    }
+                    if (world[lst[0]][lst[1] + 1] != WALL) {
+                        world[lst[0]][lst[1] + 1] = AVATAR;
+                        world[lst[0]][lst[1]] = FLOOR;
+                        lst[1] += 1;
+                        ter.renderFrame(world);
+                    } else {
+                        world[lst[0]][lst[1]] = AVATAR;
+                    }
+                }
+                if (c == 'd') {
+                    if (world[lst[0] + 1][lst[1]].equals(CHICKEN)) {
+                        chicken += 1;
+                    }
+                    if (chicken == 6) {
+                        gameOver = true;
+                        endGame();
+                        StdDraw.show();
+                    }
+                    if (world[lst[0] + 1][lst[1]] != WALL) {
+                        world[lst[0] + 1][lst[1]] = AVATAR;
+                        world[lst[0]][lst[1]] = FLOOR;
+                        lst[0] += 1;
+                        ter.renderFrame(world);
+                    } else {
+                        world[lst[0]][lst[1]] = AVATAR;
+                    }
+                }
+                if (c == 's') {
+                    if (world[lst[0]][lst[1] - 1].equals(CHICKEN)) {
+                        chicken += 1;
+                    }
+                    if (chicken == 6) {
+                        gameOver = true;
+                        endGame();
+                        StdDraw.show();
+                    }
+                    if (world[lst[0]][lst[1] - 1] != WALL) {
+                        world[lst[0]][lst[1] - 1] = AVATAR;
+                        world[lst[0]][lst[1]] = FLOOR;
+                        lst[1] -= 1;
+                        ter.renderFrame(world);
+                    } else {
+                        world[lst[0]][lst[1]] = AVATAR;
+                    }
+                }
+            }
+        }
+    }
+
+    private void interactMenu() {
+        StdDraw.clear(Color.pink);
+        Font font = new Font("Serif", Font.BOLD, 36);
+        StdDraw.setFont(font);
+        StdDraw.setPenColor(Color.white);
+
+        Font menu = new Font("Serif", Font.BOLD, 24);
+        StdDraw.setFont(menu);
+        StdDraw.setPenColor(Color.white);
+        StdDraw.text(WIDTH / 2, HEIGHT - 20, "Seed: " + s);
+        StdDraw.text(WIDTH / 2, HEIGHT - 22, "Press p to start game");
+        StdDraw.show();
+
     }
 
     public void rendererScreen(){
@@ -96,6 +261,18 @@ public class Engine {
         StdDraw.text(WIDTH / 2, HEIGHT - 22, "Load Game (L)");
         StdDraw.text(WIDTH / 2, HEIGHT - 24, "Quit (Q)");
         StdDraw.show();
+
+    }
+
+    public void endGame(){
+        StdDraw.clear(Color.pink);
+        Font font = new Font("Serif", Font.BOLD, 20);
+        StdDraw.setFont(font);
+        StdDraw.setPenColor(Color.white);
+        StdDraw.text(WIDTH / 2, HEIGHT - 10, "Congrats! " +
+                "You helped IKUN to find all his chickens! 💗");
+        StdDraw.show();
+        StdDraw.pause(300000);
 
     }
 }
